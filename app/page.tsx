@@ -93,12 +93,15 @@ const PIE_COLORS = [
   "#06b6d4",
 ];
 
-function corrColor(v: number): string {
-  // -1 → indigo, 0 → slate, +1 → emerald-red scale (red = high corr = risk)
+function corrColor(v: number, isDiagonal = false): string {
+  // Diagonale = sempre 1.00 (identità): colore neutro, non segnale di rischio
+  if (isDiagonal) return "bg-slate-600 text-slate-100 ring-1 ring-slate-500/50";
+  // Verde = correlazione bassa → meglio per diversificare
+  // Rosso/amber = correlazione alta → peggio (si muovono insieme)
   if (v >= 0.7) return "bg-rose-500/90 text-white";
   if (v >= 0.4) return "bg-amber-500/80 text-slate-950";
   if (v >= 0.15) return "bg-emerald-600/70 text-white";
-  if (v >= -0.15) return "bg-slate-700 text-slate-200";
+  if (v >= -0.15) return "bg-emerald-700/80 text-white";
   if (v >= -0.4) return "bg-indigo-600/70 text-white";
   return "bg-indigo-400/90 text-slate-950";
 }
@@ -654,10 +657,28 @@ export default function HomePage() {
               <h3 className="text-base font-semibold text-slate-100 mb-1">
                 Matrice di Correlazione di Pearson
               </h3>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-slate-500 mb-2">
                 Ogni cella misura quanto due titoli si muovono insieme (−1 opposti, 0 indipendenti, +1 identici).
-                Diagonale = 1.00 (un titolo con se stesso). Scala: indigo (negativa) → slate (neutra) → amber/rose (positiva elevata).
+                La diagonale è sempre 1.00 (titolo con se stesso) e non è un giudizio di qualità.
               </p>
+              <div className="mb-4 flex flex-wrap gap-2 text-[10px] sm:text-xs">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600/20 px-2 py-1 text-emerald-300 border border-emerald-500/30">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
+                  Verde = bassa corr. → meglio per diversificare
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-1 text-amber-300 border border-amber-500/30">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-amber-500" />
+                  Amber = correlazione moderata
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 text-rose-300 border border-rose-500/30">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
+                  Rosso = alta corr. → peggio (si muovono insieme)
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-700/50 px-2 py-1 text-slate-300 border border-slate-600">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-slate-500" />
+                  Grigio = diagonale (sempre 1.00)
+                </span>
+              </div>
               <div className="overflow-x-auto">
                 <div
                   className="inline-grid gap-1 mx-auto"
@@ -684,7 +705,7 @@ export default function HomePage() {
                       {row.map((v, j) => (
                         <div
                           key={`${i}-${j}`}
-                          className={`flex h-11 w-[3.25rem] items-center justify-center rounded-md text-[10px] sm:text-xs font-mono font-medium ${corrColor(v)}`}
+                          className={`flex h-11 w-[3.25rem] items-center justify-center rounded-md text-[10px] sm:text-xs font-mono font-medium ${corrColor(v, i === j)}`}
                           title={`${result.tickers[i]} ↔ ${result.tickers[j]}: ${v.toFixed(3)}`}
                         >
                           {v.toFixed(2)}
