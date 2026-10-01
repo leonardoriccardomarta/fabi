@@ -983,8 +983,8 @@ function PieTooltip({
   if (!active || !payload?.length) return null;
   const item = payload[0];
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg pointer-events-none">
-      <p className="font-medium text-slate-800">{item.name}</p>
+    <div className="max-w-[160px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-lg pointer-events-none break-words">
+      <p className="font-medium text-slate-800 leading-snug">{item.name}</p>
       <p className="mt-0.5 font-mono text-slate-900">
         {weightLabel}: <span className="font-semibold">{item.value}%</span>
       </p>
@@ -1007,20 +1007,20 @@ function ExposureChart({
     data.length <= 1 || data.some((d) => d.value >= 99.5);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
+    <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-hidden">
       <h3 className="text-base font-semibold text-slate-100 mb-1">{title}</h3>
       {hint && <p className="text-xs text-slate-500 mb-3">{hint}</p>}
-      <div className="chart-touch h-56 w-full outline-none [&_*]:outline-none [&_svg]:outline-none">
+      <div className="chart-touch relative h-56 w-full overflow-hidden outline-none [&_*]:outline-none [&_svg]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
             <Pie
               data={data}
               dataKey="value"
               nameKey="name"
               cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={85}
+              cy="45%"
+              innerRadius={50}
+              outerRadius={72}
               paddingAngle={isFullCircle ? 0 : 2}
               stroke="none"
               startAngle={90}
@@ -1038,8 +1038,14 @@ function ExposureChart({
             </Pie>
             <Tooltip
               content={<PieTooltip weightLabel={weightLabel} />}
-              wrapperStyle={{ outline: "none", zIndex: 50 }}
-              allowEscapeViewBox={{ x: true, y: true }}
+              allowEscapeViewBox={{ x: false, y: false }}
+              wrapperStyle={{
+                outline: "none",
+                zIndex: 50,
+                pointerEvents: "none",
+                maxWidth: "70%",
+              }}
+              offset={12}
             />
             <Legend
               wrapperStyle={{ fontSize: 11 }}

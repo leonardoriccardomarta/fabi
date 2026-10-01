@@ -81,4 +81,6 @@ footer {
 .recharts-tooltip-wrapper {
   outline: none !important;
   z-index: 50 !important;
+  max-width: min(180px, 70vw) !important;
+  pointer-events: none !important;
 }
