@@ -120,6 +120,7 @@ export default function HomePage() {
   const [tickers, setTickers] = useState<string[]>(["AAPL", "MSFT", "ASML", "ENI.MI"]);
   const [input, setInput] = useState("");
   const [horizon, setHorizon] = useState<Horizon>("1Y");
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -148,6 +149,7 @@ export default function HomePage() {
         return;
       }
       setTickers((prev) => [...prev, t]);
+      setSelectedPreset(null);
       setInput("");
       setSearchHits([]);
       setSearchOpen(false);
@@ -211,10 +213,12 @@ export default function HomePage() {
 
   const removeTicker = (t: string) => {
     setTickers((prev) => prev.filter((x) => x !== t));
+    setSelectedPreset(null);
   };
 
   const applyPreset = (key: string) => {
     setTickers([...PRESETS[key].tickers]);
+    setSelectedPreset(key);
     setError(null);
   };
 
@@ -406,6 +410,7 @@ export default function HomePage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setTickers([]);
+                    setSelectedPreset(null);
                   }}
                   className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                   aria-label="Svuota portafoglio"
@@ -493,18 +498,31 @@ export default function HomePage() {
           </div>
 
           {/* Presets */}
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 items-center">
             <span className="text-xs text-slate-500 self-center mr-1">Esempi pronti:</span>
-            {Object.entries(PRESETS).map(([key, p]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => applyPreset(key)}
-                className="rounded-lg border border-slate-700 bg-slate-850/50 px-3 py-1.5 text-xs text-slate-300 hover:border-indigo-500/50 hover:text-indigo-300 transition-colors"
-              >
-                {p.label}
-              </button>
-            ))}
+            {Object.entries(PRESETS).map(([key, p]) => {
+              const active = selectedPreset === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => applyPreset(key)}
+                  aria-pressed={active}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                    active
+                      ? "border-indigo-500 bg-indigo-500/20 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.25)]"
+                      : "border-slate-700 bg-slate-850/50 text-slate-300 hover:border-indigo-500/50 hover:text-indigo-300 hover:bg-indigo-500/10"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+            {selectedPreset && (
+              <span className="text-[11px] text-indigo-400/80 self-center">
+                Setup attivo: puoi cambiare il periodo sotto
+              </span>
+            )}
           </div>
 
           {/* Horizon + Analyze */}
