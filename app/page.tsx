@@ -96,11 +96,10 @@ const PIE_COLORS = [
 function corrColor(v: number, isDiagonal = false): string {
   // Diagonale = sempre 1.00: grigio neutro
   if (isDiagonal) return "bg-slate-600 text-slate-100 ring-1 ring-slate-500/50";
-  // Verde = bassa correlazione (meglio) · Rosso = alta (peggio)
+  // Verde = bassa o negativa (utile alla diversificazione)
+  // Rosso = correlazione elevata (i titoli si muovono insieme)
   if (v >= 0.4) return "bg-rose-500/90 text-white";
-  if (v >= 0.15) return "bg-emerald-600/70 text-white";
-  if (v >= -0.15) return "bg-emerald-700/80 text-white";
-  return "bg-indigo-500/80 text-white";
+  return "bg-emerald-600/75 text-white";
 }
 
 function corrLabelColor(label: string): string {
@@ -329,7 +328,7 @@ export default function HomePage() {
                 Il tuo portafoglio
               </h2>
           <p className="text-sm text-slate-400 mt-1">
-                Cerca un&apos;azienda (es. Apple) e aggiungila al portafoglio. Ogni titolo pesa allo stesso modo.
+                Cerca un&apos;azienda o un ticker (es. Apple, ENI.MI). I pesi sono equi (1/N).
               </p>
             </div>
           </div>
@@ -591,23 +590,23 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
                 icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
-                label="Quanto oscilla il portafoglio"
+                label="Volatilità del portafoglio"
                 value={`${(result.portfolioVolatility * 100).toFixed(2)}%`}
-                sub="Più alto = più rischioso (su base annua)"
+                sub="Oscillazione annua stimata del portafoglio"
               />
               <KpiCard
                 icon={<Activity className="h-4 w-4 text-indigo-400" />}
-                label="Quanto si muovono insieme"
+                label="Correlazione media"
                 value={result.avgCorrelation.toFixed(3)}
                 sub={
                   <span
                     className={`inline-flex mt-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${corrLabelColor(result.correlationLabel)}`}
                   >
                     {result.correlationLabel === "Bassa"
-                      ? "Bassa — bene"
+                      ? "Bassa — diversificazione efficace"
                       : result.correlationLabel === "Moderata"
-                        ? "Media"
-                        : "Alta — attenzione"}
+                        ? "Moderata"
+                        : "Elevata — attenzione"}
                   </span>
                 }
               />
@@ -615,7 +614,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-slate-500">
                     <Sparkles className="h-4 w-4 text-blue-400" />
-                    Beneficio diversificazione
+                    Diversification Ratio
                   </div>
                   <button
                     type="button"
@@ -623,7 +622,7 @@ export default function HomePage() {
                     onMouseEnter={() => setShowDrTip(true)}
                     onMouseLeave={() => setShowDrTip(false)}
                     onClick={() => setShowDrTip((v) => !v)}
-                    aria-label="Spiegazione beneficio diversificazione"
+                    aria-label="Spiegazione Diversification Ratio"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -632,17 +631,18 @@ export default function HomePage() {
                   {result.diversificationRatio.toFixed(3)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Sopra 1 = i titoli si compensano un po&apos;
+                  Valori &gt; 1 indicano beneficio dalla diversificazione
                 </p>
                 {showDrTip && (
-                  <div className="absolute z-20 right-3 top-12 max-w-[220px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-300 shadow-xl">
-                    Se i titoli non salgono e scendono tutti insieme, il rischio totale scende. Più alto di 1 = meglio.
+                  <div className="absolute z-20 right-3 top-12 max-w-[240px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-300 shadow-xl">
+                    Confronta la media delle volatilità individuali con quella del portafoglio.
+                    Se i titoli non si muovono in sincronia, il rischio aggregato diminuisce.
                   </div>
                 )}
               </div>
               <KpiCard
                 icon={<Globe2 className="h-4 w-4 text-amber-400" />}
-                label="Concentrazione"
+                label="Indice di concentrazione (HHI)"
                 value={
                   <span className="text-lg sm:text-xl">
                     Settore {(result.hhiSector * 100).toFixed(0)}
@@ -650,26 +650,29 @@ export default function HomePage() {
                     Paese {(result.hhiGeo * 100).toFixed(0)}
                   </span>
                 }
-                sub="Più alto = più concentrato (meno varietà)"
+                sub="Valori più alti = maggiore concentrazione"
               />
             </div>
 
             {/* Correlation Heatmap */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
               <h3 className="text-base font-semibold text-slate-100 mb-1">
-                Quanto si muovono i titoli insieme
+                Matrice di correlazione
               </h3>
               <p className="text-xs text-slate-500 mb-2">
-                Ogni casella confronta due titoli. Verde = si muovono poco insieme (meglio). Rosso = si muovono insieme (peggio). La diagonale grigia è sempre 1 (stesso titolo).
+                Ogni casella misura quanto due titoli tendono a muoversi insieme (correlazione di Pearson).
+                Verde: correlazione bassa o negativa — utile alla diversificazione.
+                Rosso: correlazione elevata — i titoli si muovono in modo simile.
+                Grigio: diagonale, sempre pari a 1 (stesso titolo).
               </p>
               <div className="mb-4 flex flex-wrap gap-2 text-[10px] sm:text-xs">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600/20 px-2 py-1 text-emerald-300 border border-emerald-500/30">
                   <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
-                  Verde = meglio
+                  Verde = diversificazione efficace
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 text-rose-300 border border-rose-500/30">
                   <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
-                  Rosso = peggio
+                  Rosso = rischio di co-movimento
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-700/50 px-2 py-1 text-slate-300 border border-slate-600">
                   <span className="h-2.5 w-2.5 rounded-sm bg-slate-500" />
@@ -717,11 +720,11 @@ export default function HomePage() {
             {/* Donut charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ExposureChart
-                title="Dove sono investiti (paesi)"
+                title="Esposizione geografica"
                 data={result.geoExposure}
               />
               <ExposureChart
-                title="In quali settori"
+                title="Esposizione settoriale"
                 data={result.sectorExposure}
               />
             </div>
@@ -729,10 +732,10 @@ export default function HomePage() {
             {/* Cumulative returns */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
               <h3 className="text-base font-semibold text-slate-100 mb-1">
-                Andamento nel tempo
+                Andamento cumulativo dei rendimenti
               </h3>
               <p className="text-xs text-slate-500 mb-4">
-                Partenza a 100. La linea verde è il portafoglio; le altre sono i singoli titoli.
+                Base 100. La linea evidenziata rappresenta il portafoglio equi-pesato.
               </p>
               <div className="h-72 sm:h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -789,7 +792,7 @@ export default function HomePage() {
             {/* Asset detail table */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
               <h3 className="text-base font-semibold text-slate-100 mb-4">
-                Dettaglio titoli
+                Dettaglio asset
               </h3>
               <table className="w-full text-sm">
                 <thead>
@@ -798,7 +801,7 @@ export default function HomePage() {
                     <th className="pb-3 pr-4 font-medium">Nome</th>
                     <th className="pb-3 pr-4 font-medium">Settore</th>
                     <th className="pb-3 pr-4 font-medium">Paese</th>
-                    <th className="pb-3 font-medium text-right">Rischio annuo</th>
+                    <th className="pb-3 font-medium text-right">Volatilità annua</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -849,8 +852,8 @@ export default function HomePage() {
           <section className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-16 text-center">
             <BarChart3 className="h-10 w-10 text-slate-600 mx-auto mb-4" />
             <p className="text-slate-400 text-sm max-w-md mx-auto">
-              Aggiungi almeno 2 titoli, scegli il periodo e premi Analizza.
-              Vedrai quanto è rischioso il portafoglio e se è ben diversificato.
+              Seleziona almeno due titoli, scegli l&apos;orizzonte temporale e avvia l&apos;analisi
+              per valutare rischio, correlazioni e grado di diversificazione del portafoglio.
             </p>
           </section>
         )}
@@ -860,7 +863,7 @@ export default function HomePage() {
       <footer className="border-t border-slate-800/80 mt-auto">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 text-center sm:text-left">
           <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-            Strumento per capire rischio e diversificazione di un portafoglio azionario.
+            Analisi quantitativa di portafoglio secondo i principi della Modern Portfolio Theory.
           </p>
         </div>
       </footer>
