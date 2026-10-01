@@ -64,3 +64,21 @@ footer {
     text-wrap: balance;
   }
 }
+
+/* Mobile: no blue focus / tap highlight on charts */
+.chart-touch,
+.chart-touch *,
+.chart-touch svg,
+.chart-touch path,
+.recharts-wrapper,
+.recharts-surface,
+.recharts-sector {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-focus-ring-color: transparent;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none !important;
+  z-index: 50 !important;
+}

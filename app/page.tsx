@@ -879,6 +879,25 @@ function KpiCard({
   );
 }
 
+function PieTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg pointer-events-none">
+      <p className="font-medium text-slate-800">{item.name}</p>
+      <p className="mt-0.5 font-mono text-slate-900">
+        Peso: <span className="font-semibold">{item.value}%</span>
+      </p>
+    </div>
+  );
+}
+
 function ExposureChart({
   title,
   data,
@@ -886,10 +905,13 @@ function ExposureChart({
   title: string;
   data: { name: string; value: number }[];
 }) {
+  const isFullCircle =
+    data.length <= 1 || data.some((d) => d.value >= 99.5);
+
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
       <h3 className="text-base font-semibold text-slate-100 mb-4">{title}</h3>
-      <div className="h-56 w-full">
+      <div className="chart-touch h-56 w-full outline-none [&_*]:outline-none [&_svg]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -900,21 +922,25 @@ function ExposureChart({
               cy="50%"
               innerRadius={55}
               outerRadius={85}
-              paddingAngle={2}
+              paddingAngle={isFullCircle ? 0 : 2}
               stroke="none"
+              startAngle={90}
+              endAngle={-270}
+              isAnimationActive={false}
             >
               {data.map((_, i) => (
-                <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                <Cell
+                  key={i}
+                  fill={PIE_COLORS[i % PIE_COLORS.length]}
+                  stroke="none"
+                  style={{ outline: "none" }}
+                />
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`${value}%`, "Peso"]}
-              contentStyle={{
-                background: "#0f172a",
-                border: "1px solid #334155",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
+              content={<PieTooltip />}
+              wrapperStyle={{ outline: "none", zIndex: 50 }}
+              allowEscapeViewBox={{ x: true, y: true }}
             />
             <Legend
               wrapperStyle={{ fontSize: 11 }}
