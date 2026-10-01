@@ -655,43 +655,44 @@ export default function HomePage() {
                 Matrice di Correlazione di Pearson
               </h3>
               <p className="text-xs text-slate-500 mb-4">
-                Scala: indigo (negativa) → slate (neutra) → amber/rose (positiva elevata)
+                Ogni cella misura quanto due titoli si muovono insieme (−1 opposti, 0 indipendenti, +1 identici).
+                Diagonale = 1.00 (un titolo con se stesso). Scala: indigo (negativa) → slate (neutra) → amber/rose (positiva elevata).
               </p>
-              <div className="inline-block min-w-full">
-                <table className="border-separate border-spacing-1 mx-auto">
-                  <thead>
-                    <tr>
-                      <th className="w-16" />
-                      {result.tickers.map((t) => (
-                        <th
-                          key={t}
-                          className="px-1 pb-2 text-[10px] sm:text-xs font-mono text-slate-400 font-medium text-center min-w-[52px]"
+              <div className="overflow-x-auto">
+                <div
+                  className="inline-grid gap-1 mx-auto"
+                  style={{
+                    gridTemplateColumns: `minmax(4.5rem, auto) repeat(${result.tickers.length}, 3.25rem)`,
+                  }}
+                >
+                  {/* corner */}
+                  <div />
+                  {result.tickers.map((t) => (
+                    <div
+                      key={`h-${t}`}
+                      className="flex items-end justify-center pb-1 text-[9px] sm:text-[10px] font-mono text-slate-400 font-medium text-center leading-tight break-all px-0.5"
+                      title={t}
+                    >
+                      {t}
+                    </div>
+                  ))}
+                  {result.correlationMatrix.map((row, i) => (
+                    <div key={`r-${result.tickers[i]}`} className="contents">
+                      <div className="flex items-center justify-end pr-2 text-[9px] sm:text-[10px] font-mono text-slate-400 whitespace-nowrap">
+                        {result.tickers[i]}
+                      </div>
+                      {row.map((v, j) => (
+                        <div
+                          key={`${i}-${j}`}
+                          className={`flex h-11 w-[3.25rem] items-center justify-center rounded-md text-[10px] sm:text-xs font-mono font-medium ${corrColor(v)}`}
+                          title={`${result.tickers[i]} ↔ ${result.tickers[j]}: ${v.toFixed(3)}`}
                         >
-                          {t}
-                        </th>
+                          {v.toFixed(2)}
+                        </div>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.correlationMatrix.map((row, i) => (
-                      <tr key={result.tickers[i]}>
-                        <td className="pr-2 text-[10px] sm:text-xs font-mono text-slate-400 text-right whitespace-nowrap">
-                          {result.tickers[i]}
-                        </td>
-                        {row.map((v, j) => (
-                          <td key={`${i}-${j}`} className="p-0">
-                            <div
-                              className={`flex h-10 w-12 sm:h-12 sm:w-14 items-center justify-center rounded-md text-[10px] sm:text-xs font-mono font-medium ${corrColor(v)}`}
-                              title={`${result.tickers[i]} ↔ ${result.tickers[j]}: ${v.toFixed(3)}`}
-                            >
-                              {v.toFixed(2)}
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
