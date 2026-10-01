@@ -17,7 +17,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Portfolio Risk & Diversification Engine",
   description:
-    "Motore quantitativo di analisi del rischio di portafoglio basato su Modern Portfolio Theory, correlazione di Pearson, Diversification Ratio e indice HHI.",
+    "Quantitative portfolio risk engine based on Modern Portfolio Theory, Pearson correlation, Diversification Ratio, and HHI concentration index.",
   keywords: [
     "Modern Portfolio Theory",
     "portfolio risk",
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="it" className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}
       >

@@ -12,6 +12,7 @@ const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 interface AnalyzeRequest {
   tickers: string[];
   horizon?: "6M" | "1Y" | "3Y";
+  locale?: "en" | "it";
 }
 
 interface AssetMeta {
@@ -29,7 +30,7 @@ interface AnalysisResult {
   volatilities: Record<string, number>;
   portfolioVolatility: number;
   avgCorrelation: number;
-  correlationLabel: "Bassa" | "Moderata" | "Critica";
+  correlationLabel: "Low" | "Moderate" | "High";
   diversificationRatio: number;
   hhiSector: number;
   hhiGeo: number;
@@ -148,9 +149,9 @@ function generateRiskSummary(
   avgCorr: number,
   dr: number,
   hhiSector: number,
-  hhiGeo: number
+  hhiGeo: number,
+  locale: "en" | "it" = "en"
 ): AnalysisResult["riskSummary"] {
-  // Composite score: higher = more risk concentration
   let score = 0;
   if (portfolioVol > 0.25) score += 2;
   else if (portfolioVol > 0.18) score += 1;
@@ -162,40 +163,80 @@ function generateRiskSummary(
   else if (hhiSector > 0.3) score += 1;
   if (hhiGeo > 0.55) score += 1;
 
+  const volPct = (portfolioVol * 100).toFixed(1);
+  const corr = avgCorr.toFixed(2);
+  const drStr = dr.toFixed(2);
+  const hs = hhiSector.toFixed(2);
+  const hg = hhiGeo.toFixed(2);
+
   if (score <= 2) {
+    if (locale === "it") {
+      return {
+        level: "low",
+        title: "Portafoglio resiliente: diversificazione efficace",
+        message:
+          `La volatilità annualizzata si attesta al ${volPct}%, con correlazione media inter-asset pari a ${corr}. ` +
+          `Il Diversification Ratio (${drStr}) conferma un beneficio concreto dalla bassa covarianza tra i titoli. ` +
+          `Gli indici HHI di settore (${hs}) e geografici (${hg}) indicano una concentrazione contenuta. ` +
+          `Il profilo è coerente con i principi della Modern Portfolio Theory.`,
+      };
+    }
     return {
       level: "low",
-      title: "Portafoglio resiliente: diversificazione efficace",
+      title: "Resilient portfolio: effective diversification",
       message:
-        `La volatilità annualizzata si attesta al ${(portfolioVol * 100).toFixed(1)}%, ` +
-        `con correlazione media inter-asset pari a ${avgCorr.toFixed(2)}. ` +
-        `Il Diversification Ratio (${dr.toFixed(2)}) conferma un beneficio concreto dalla bassa covarianza tra i titoli. ` +
-        `Gli indici HHI di settore (${hhiSector.toFixed(2)}) e geografici (${hhiGeo.toFixed(2)}) ` +
-        `indicano una concentrazione contenuta. Il profilo è coerente con i principi della Modern Portfolio Theory.`,
+        `Annualized volatility stands at ${volPct}%, with average inter-asset correlation of ${corr}. ` +
+        `The Diversification Ratio (${drStr}) confirms a tangible benefit from low covariance among holdings. ` +
+        `Sector HHI (${hs}) and geographic HHI (${hg}) indicate contained concentration. ` +
+        `The profile is consistent with the principles of Modern Portfolio Theory.`,
     };
   }
 
   if (score <= 5) {
+    if (locale === "it") {
+      return {
+        level: "moderate",
+        title: "Diversificazione parziale: margini di miglioramento",
+        message:
+          `Volatilità annualizzata al ${volPct}% e correlazione media ${corr}. ` +
+          `Il Diversification Ratio (${drStr}) segnala un beneficio di diversificazione ancora incompleto. ` +
+          `HHI settoriale ${hs} e geografico ${hg} suggeriscono possibili aree di concentrazione. ` +
+          `Si raccomanda di valutare asset con correlazione inferiore alla media corrente.`,
+      };
+    }
     return {
       level: "moderate",
-      title: "Diversificazione parziale: margini di miglioramento",
+      title: "Partial diversification: room for improvement",
       message:
-        `Volatilità annualizzata al ${(portfolioVol * 100).toFixed(1)}% e correlazione media ${avgCorr.toFixed(2)}. ` +
-        `Il Diversification Ratio (${dr.toFixed(2)}) segnala un beneficio di diversificazione ancora incompleto. ` +
-        `HHI settoriale ${hhiSector.toFixed(2)} e geografico ${hhiGeo.toFixed(2)} suggeriscono possibili aree di concentrazione. ` +
-        `Si raccomanda di valutare asset con correlazione inferiore alla media corrente.`,
+        `Annualized volatility at ${volPct}% and average correlation ${corr}. ` +
+        `The Diversification Ratio (${drStr}) indicates an incomplete diversification benefit. ` +
+        `Sector HHI ${hs} and geographic HHI ${hg} suggest possible concentration areas. ` +
+        `Consider adding assets with below-average pairwise correlation.`,
+    };
+  }
+
+  if (locale === "it") {
+    return {
+      level: "high",
+      title: "Alert: rischio di concentrazione elevato",
+      message:
+        `Volatilità annualizzata elevata (${volPct}%) e correlazione media critica (${corr}). ` +
+        `Il Diversification Ratio (${drStr}) indica un beneficio da covarianza insufficiente. ` +
+        `HHI settoriale ${hs} e geografico ${hg} evidenziano concentrazione marcata: ` +
+        `in uno scenario di stress di mercato le perdite potrebbero amplificarsi. ` +
+        `Si raccomanda una maggiore esposizione a settori e aree geografiche decorrelati.`,
     };
   }
 
   return {
     level: "high",
-    title: "Alert: rischio di concentrazione elevato",
+    title: "Alert: elevated concentration risk",
     message:
-      `Volatilità annualizzata elevata (${(portfolioVol * 100).toFixed(1)}%) e correlazione media critica (${avgCorr.toFixed(2)}). ` +
-      `Il Diversification Ratio (${dr.toFixed(2)}) indica un beneficio da covarianza insufficiente. ` +
-      `HHI settoriale ${hhiSector.toFixed(2)} e geografico ${hhiGeo.toFixed(2)} evidenziano concentrazione marcata: ` +
-      `in uno scenario di stress di mercato le perdite potrebbero amplificarsi. ` +
-      `Si raccomanda una maggiore esposizione a settori e aree geografiche decorrelati.`,
+      `Elevated annualized volatility (${volPct}%) and critical average correlation (${corr}). ` +
+      `The Diversification Ratio (${drStr}) indicates an insufficient covariance benefit. ` +
+      `Sector HHI ${hs} and geographic HHI ${hg} show marked concentration: ` +
+      `in a market stress scenario, losses may amplify. ` +
+      `Greater exposure to decorrelated sectors and geographies is recommended.`,
   };
 }
 
@@ -210,8 +251,8 @@ async function fetchAssetData(
   series: { date: string; close: number }[];
 }> {
   let name = ticker.toUpperCase();
-  let sector = "Non classificato";
-  let country = "Non classificato";
+  let sector = "Unclassified";
+  let country = "Unclassified";
   let currency = "USD";
 
   try {
@@ -282,12 +323,15 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as AnalyzeRequest;
     const rawTickers = body.tickers ?? [];
     const horizon = body.horizon ?? "1Y";
+    const locale = body.locale === "it" ? "it" : "en";
 
     if (!Array.isArray(rawTickers) || rawTickers.length < 2) {
       return NextResponse.json(
         {
           error:
-            "Inserire almeno 2 ticker azionari validi per eseguire l'analisi di portafoglio.",
+            locale === "it"
+              ? "Inserire almeno 2 ticker azionari validi per eseguire l'analisi di portafoglio."
+              : "Enter at least 2 valid equity tickers to run the portfolio analysis.",
         },
         { status: 400 }
       );
@@ -295,7 +339,12 @@ export async function POST(req: NextRequest) {
 
     if (rawTickers.length > 12) {
       return NextResponse.json(
-        { error: "Massimo 12 ticker per analisi (limite serverless)." },
+        {
+          error:
+            locale === "it"
+              ? "Massimo 12 ticker per analisi (limite serverless)."
+              : "Maximum 12 tickers per analysis (serverless limit).",
+        },
         { status: 400 }
       );
     }
@@ -417,10 +466,10 @@ export async function POST(req: NextRequest) {
     const avgCorrelation = corrCount > 0 ? corrSum / corrCount : 0;
     const correlationLabel: AnalysisResult["correlationLabel"] =
       avgCorrelation < 0.35
-        ? "Bassa"
+        ? "Low"
         : avgCorrelation < 0.65
-          ? "Moderata"
-          : "Critica";
+          ? "Moderate"
+          : "High";
 
     // Diversification Ratio = Σ(w_i σ_i) / σ_p
     const weightedVolSum = validTickers.reduce(
@@ -492,7 +541,8 @@ export async function POST(req: NextRequest) {
       avgCorrelation,
       diversificationRatio,
       hhiSector,
-      hhiGeo
+      hhiGeo,
+      locale
     );
 
     const payload: AnalysisResult & { warnings?: string[] } = {

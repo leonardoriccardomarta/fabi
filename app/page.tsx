@@ -33,6 +33,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { type Locale, t as tr } from "@/lib/i18n";
 
 type Horizon = "6M" | "1Y" | "3Y";
 
@@ -49,7 +50,7 @@ interface AnalysisResult {
   volatilities: Record<string, number>;
   portfolioVolatility: number;
   avgCorrelation: number;
-  correlationLabel: "Bassa" | "Moderata" | "Critica";
+  correlationLabel: "Low" | "Moderate" | "High" | "Bassa" | "Moderata" | "Critica";
   diversificationRatio: number;
   hhiSector: number;
   hhiGeo: number;
@@ -103,8 +104,10 @@ function corrColor(v: number, isDiagonal = false): string {
 }
 
 function corrLabelColor(label: string): string {
-  if (label === "Bassa") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-  if (label === "Moderata") return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+  if (label === "Low" || label === "Bassa")
+    return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+  if (label === "Moderate" || label === "Moderata")
+    return "bg-amber-500/15 text-amber-400 border-amber-500/30";
   return "bg-rose-500/15 text-rose-400 border-rose-500/30";
 }
 
@@ -120,6 +123,7 @@ export default function HomePage() {
   const [tickers, setTickers] = useState<string[]>(["AAPL", "MSFT", "ASML", "ENI.MI"]);
   const [input, setInput] = useState("");
   const [horizon, setHorizon] = useState<Horizon>("1Y");
+  const [locale, setLocale] = useState<Locale>("en");
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +149,7 @@ export default function HomePage() {
         return;
       }
       if (tickers.length >= 12) {
-        setError("Massimo 12 ticker per analisi.");
+        setError(tr(locale, "errMaxTickers"));
         return;
       }
       setTickers((prev) => [...prev, t]);
@@ -155,7 +159,7 @@ export default function HomePage() {
       setSearchOpen(false);
       setError(null);
     },
-    [tickers]
+    [tickers, locale]
   );
 
   const runCompanySearch = useCallback(async (query: string) => {
@@ -255,7 +259,7 @@ export default function HomePage() {
 
   const runAnalysis = async () => {
     if (tickers.length < 2) {
-      setError("Inserire almeno 2 ticker per l'analisi di portafoglio.");
+      setError(tr(locale, "errMinTickers"));
       return;
     }
     setLoading(true);
@@ -265,18 +269,16 @@ export default function HomePage() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tickers, horizon }),
+        body: JSON.stringify({ tickers, horizon, locale }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Errore durante l'analisi.");
+        setError(data.error || tr(locale, "errGeneric"));
         return;
       }
       setResult(data as AnalysisResult);
     } catch {
-      setError(
-        "Impossibile contattare il motore di analisi. Verificare la connessione e riprovare."
-      );
+      setError(tr(locale, "errNetwork"));
     } finally {
       setLoading(false);
     }
@@ -300,24 +302,81 @@ export default function HomePage() {
     return "border-rose-500/30 bg-rose-500/5";
   }, [result]);
 
+  // Refresh risk summary language when locale changes after an analysis
+  useEffect(() => {
+    if (!result) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tickers: result.tickers,
+            horizon: result.horizon,
+            locale,
+          }),
+        });
+        const data = await res.json();
+        if (!cancelled && res.ok) setResult(data as AnalysisResult);
+      } catch {
+        /* keep previous result */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* ───── Header ───── */}
       <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-600 shadow-glow">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-semibold text-slate-100 truncate">
-              Portfolio Risk &amp; Diversification Engine
-            </h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="inline-flex items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-indigo-300 tracking-wide uppercase">
-                <Sparkles className="h-3 w-3" />
-                Quantitative Risk Engine
-              </span>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-600 shadow-glow">
+              <BarChart3 className="h-5 w-5 text-white" />
             </div>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold text-slate-100 truncate">
+                Portfolio Risk &amp; Diversification Engine
+              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="inline-flex items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-indigo-300 tracking-wide uppercase">
+                  <Sparkles className="h-3 w-3" />
+                  {tr(locale, "badge")}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div
+            className="inline-flex shrink-0 rounded-lg border border-slate-700 bg-slate-950/60 p-0.5"
+            role="group"
+            aria-label="Language"
+          >
+            <button
+              type="button"
+              onClick={() => setLocale("en")}
+              className={`px-2.5 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                locale === "en"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {tr(locale, "langEn")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocale("it")}
+              className={`px-2.5 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                locale === "it"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {tr(locale, "langIt")}
+            </button>
           </div>
         </div>
       </header>
@@ -329,10 +388,10 @@ export default function HomePage() {
             <div>
               <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
                 <Layers className="h-5 w-5 text-emerald-400" />
-                Il tuo portafoglio
+                {tr(locale, "yourPortfolio")}
               </h2>
           <p className="text-sm text-slate-400 mt-1">
-                Cerca un&apos;azienda o un ticker (es. Apple, ENI.MI). I pesi sono equi (1/N).
+                {tr(locale, "portfolioHint")}
               </p>
             </div>
           </div>
@@ -346,20 +405,20 @@ export default function HomePage() {
                 setSearchOpen(true);
               }}
             >
-              {tickers.map((t) => (
+              {tickers.map((ticker) => (
                 <span
-                  key={t}
+                  key={ticker}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 pl-2.5 pr-1.5 py-1 text-sm font-mono text-emerald-300"
                 >
-                  {t}
+                  {ticker}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeTicker(t);
+                      removeTicker(ticker);
                     }}
                     className="rounded-md p-0.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700 transition-colors"
-                    aria-label={`Rimuovi ${t}`}
+                    aria-label={`${tr(locale, "removeTicker")} ${ticker}`}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -381,8 +440,8 @@ export default function HomePage() {
                   onKeyDown={handleKeyDown}
                   placeholder={
                     tickers.length === 0
-                      ? "Cerca azienda o ticker…"
-                      : "Aggiungi azienda…"
+                      ? tr(locale, "searchPlaceholderEmpty")
+                      : tr(locale, "searchPlaceholderAdd")
                   }
                   className="flex-1 bg-transparent outline-none text-sm text-slate-200 placeholder:text-slate-600 py-1"
                   autoComplete="off"
@@ -399,8 +458,8 @@ export default function HomePage() {
                   openSearchPanel();
                 }}
                 className="rounded-lg p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"
-                aria-label="Apri ricerca aziende"
-                title="Cerca azienda"
+                aria-label={tr(locale, "openSearch")}
+                title={tr(locale, "openSearch")}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -413,7 +472,7 @@ export default function HomePage() {
                     setSelectedPreset(null);
                   }}
                   className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
-                  aria-label="Svuota portafoglio"
+                  aria-label={tr(locale, "clearPortfolio")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -430,18 +489,18 @@ export default function HomePage() {
                 {input.trim().length === 0 && !searchLoading && (
                   <div className="px-4 py-3 text-sm text-slate-500 flex items-center gap-2">
                     <Search className="h-4 w-4 text-slate-600" />
-                    Digita il nome azienda o il ticker (es. Apple, Eni, ASML)…
+                    {tr(locale, "searchHint")}
                   </div>
                 )}
                 {searchLoading && (
                   <div className="flex items-center gap-2 px-4 py-3 text-sm text-slate-400">
                     <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
-                    Ricerca in corso…
+                    {tr(locale, "searching")}
                   </div>
                 )}
                 {!searchLoading && searchHits.length === 0 && input.trim().length > 0 && (
                   <div className="px-4 py-3 text-sm text-slate-500">
-                    Nessun risultato per &ldquo;{input.trim()}&rdquo;. Prova il ticker esatto e premi Enter.
+                    {tr(locale, "noResults")} &ldquo;{input.trim()}&rdquo;. {tr(locale, "noResultsHint")}
                   </div>
                 )}
                 {!searchLoading &&
@@ -483,7 +542,7 @@ export default function HomePage() {
                             {hit.exchange && <span>· {hit.exchange}</span>}
                             {hit.sector && <span>· {hit.sector}</span>}
                             {already && (
-                              <span className="text-amber-500">già nel portafoglio</span>
+                              <span className="text-amber-500">{tr(locale, "alreadyInPortfolio")}</span>
                             )}
                           </div>
                         </div>
@@ -499,7 +558,7 @@ export default function HomePage() {
 
           {/* Presets */}
           <div className="mt-4 flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-slate-500 self-center mr-1">Esempi pronti:</span>
+            <span className="text-xs text-slate-500 self-center mr-1">{tr(locale, "readyExamples")}</span>
             {Object.entries(PRESETS).map(([key, p]) => {
               const active = selectedPreset === key;
               return (
@@ -518,17 +577,12 @@ export default function HomePage() {
                 </button>
               );
             })}
-            {selectedPreset && (
-              <span className="text-[11px] text-indigo-400/80 self-center">
-                Setup attivo: puoi cambiare il periodo sotto
-              </span>
-            )}
           </div>
 
           {/* Horizon + Analyze */}
           <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 uppercase tracking-wider">Periodo</span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider">{tr(locale, "period")}</span>
               <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/50 p-0.5">
                 {(["6M", "1Y", "3Y"] as Horizon[]).map((h) => (
                   <button
@@ -556,12 +610,12 @@ export default function HomePage() {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Analisi in corso…
+                  {tr(locale, "analyzing")}
                 </>
               ) : (
                 <>
                   <Activity className="h-4 w-4" />
-                  Analizza
+                  {tr(locale, "analyze")}
                 </>
               )}
             </button>
@@ -599,7 +653,7 @@ export default function HomePage() {
           <div className="space-y-6 animate-slide-up">
             {result.warnings && result.warnings.length > 0 && (
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-                <strong className="font-medium">Avvisi:</strong>{" "}
+                <strong className="font-medium">{tr(locale, "warnings")}</strong>{" "}
                 {result.warnings.join(" · ")}
               </div>
             )}
@@ -608,23 +662,25 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
                 icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
-                label="Volatilità del portafoglio"
+                label={tr(locale, "kpiVol")}
                 value={`${(result.portfolioVolatility * 100).toFixed(2)}%`}
-                sub="Oscillazione annua stimata del portafoglio"
+                sub={tr(locale, "kpiVolSub")}
               />
               <KpiCard
                 icon={<Activity className="h-4 w-4 text-indigo-400" />}
-                label="Correlazione media"
+                label={tr(locale, "kpiCorr")}
                 value={result.avgCorrelation.toFixed(3)}
                 sub={
                   <span
                     className={`inline-flex mt-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${corrLabelColor(result.correlationLabel)}`}
                   >
-                    {result.correlationLabel === "Bassa"
-                      ? "Bassa: diversificazione efficace"
-                      : result.correlationLabel === "Moderata"
-                        ? "Moderata"
-                        : "Elevata: attenzione"}
+                    {result.correlationLabel === "Low" ||
+                    result.correlationLabel === "Bassa"
+                      ? tr(locale, "corrLow")
+                      : result.correlationLabel === "Moderate" ||
+                          result.correlationLabel === "Moderata"
+                        ? tr(locale, "corrMod")
+                        : tr(locale, "corrHigh")}
                   </span>
                 }
               />
@@ -632,7 +688,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-slate-500">
                     <Sparkles className="h-4 w-4 text-blue-400" />
-                    Diversification Ratio
+                    {tr(locale, "drLabel")}
                   </div>
                   <button
                     type="button"
@@ -640,7 +696,7 @@ export default function HomePage() {
                     onMouseEnter={() => setShowDrTip(true)}
                     onMouseLeave={() => setShowDrTip(false)}
                     onClick={() => setShowDrTip((v) => !v)}
-                    aria-label="Spiegazione Diversification Ratio"
+                    aria-label={tr(locale, "drAria")}
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -649,52 +705,48 @@ export default function HomePage() {
                   {result.diversificationRatio.toFixed(3)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Valori &gt; 1 indicano beneficio dalla diversificazione
+                  {tr(locale, "drSub")}
                 </p>
                 {showDrTip && (
                   <div className="absolute z-20 right-3 top-12 max-w-[240px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-300 shadow-xl">
-                    Confronta la media delle volatilità individuali con quella del portafoglio.
-                    Se i titoli non si muovono in sincronia, il rischio aggregato diminuisce.
+                    {tr(locale, "drTip")}
                   </div>
                 )}
               </div>
               <KpiCard
                 icon={<Globe2 className="h-4 w-4 text-amber-400" />}
-                label="Indice di concentrazione (HHI)"
+                label={tr(locale, "hhiLabel")}
                 value={
                   <span className="text-lg sm:text-xl">
-                    Settore {(result.hhiSector * 100).toFixed(0)}
+                    {tr(locale, "hhiSector")} {(result.hhiSector * 100).toFixed(0)}
                     <span className="text-slate-500 font-normal text-sm"> · </span>
-                    Paese {(result.hhiGeo * 100).toFixed(0)}
+                    {tr(locale, "hhiCountry")} {(result.hhiGeo * 100).toFixed(0)}
                   </span>
                 }
-                sub="Valori più alti = maggiore concentrazione"
+                sub={tr(locale, "hhiSub")}
               />
             </div>
 
             {/* Correlation Heatmap */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
               <h3 className="text-base font-semibold text-slate-100 mb-1">
-                Matrice di correlazione
+                {tr(locale, "matrixTitle")}
               </h3>
               <p className="text-xs text-slate-500 mb-2">
-                Ogni casella misura quanto due titoli tendono a muoversi insieme (correlazione di Pearson).
-                Verde: correlazione bassa o negativa, utile alla diversificazione.
-                Rosso: correlazione elevata, i titoli si muovono in modo simile.
-                Grigio: diagonale, sempre pari a 1 (stesso titolo).
+                {tr(locale, "matrixDesc")}
               </p>
               <div className="mb-4 flex flex-wrap gap-2 text-[10px] sm:text-xs">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600/20 px-2 py-1 text-emerald-300 border border-emerald-500/30">
                   <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
-                  Verde = diversificazione efficace
+                  {tr(locale, "legendGreen")}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 text-rose-300 border border-rose-500/30">
                   <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
-                  Rosso = rischio di co-movimento
+                  {tr(locale, "legendRed")}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-700/50 px-2 py-1 text-slate-300 border border-slate-600">
                   <span className="h-2.5 w-2.5 rounded-sm bg-slate-500" />
-                  Grigio = stesso titolo
+                  {tr(locale, "legendGrey")}
                 </span>
               </div>
               <div className="overflow-x-auto">
@@ -738,22 +790,26 @@ export default function HomePage() {
             {/* Donut charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ExposureChart
-                title="Esposizione geografica"
+                title={tr(locale, "geoTitle")}
+                hint={tr(locale, "geoHint")}
                 data={result.geoExposure}
+                weightLabel={tr(locale, "weight")}
               />
               <ExposureChart
-                title="Esposizione settoriale"
+                title={tr(locale, "sectorTitle")}
+                hint={tr(locale, "sectorHint")}
                 data={result.sectorExposure}
+                weightLabel={tr(locale, "weight")}
               />
             </div>
 
             {/* Cumulative returns */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
               <h3 className="text-base font-semibold text-slate-100 mb-1">
-                Andamento cumulativo dei rendimenti
+                {tr(locale, "cumTitle")}
               </h3>
               <p className="text-xs text-slate-500 mb-4">
-                Base 100. La linea evidenziata rappresenta il portafoglio equi-pesato.
+                {tr(locale, "cumSub")}
               </p>
               <div className="h-72 sm:h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -785,7 +841,7 @@ export default function HomePage() {
                     <Line
                       type="monotone"
                       dataKey="portfolio"
-                      name="Portafoglio"
+                      name={tr(locale, "portfolioLine")}
                       stroke="#10b981"
                       strokeWidth={2.5}
                       dot={false}
@@ -810,16 +866,16 @@ export default function HomePage() {
             {/* Asset detail table */}
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
               <h3 className="text-base font-semibold text-slate-100 mb-4">
-                Dettaglio asset
+                {tr(locale, "assetsTitle")}
               </h3>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b border-slate-800">
-                    <th className="pb-3 pr-4 font-medium">Ticker</th>
-                    <th className="pb-3 pr-4 font-medium">Nome</th>
-                    <th className="pb-3 pr-4 font-medium">Settore</th>
-                    <th className="pb-3 pr-4 font-medium">Paese</th>
-                    <th className="pb-3 font-medium text-right">Volatilità annua</th>
+                    <th className="pb-3 pr-4 font-medium">{tr(locale, "colTicker")}</th>
+                    <th className="pb-3 pr-4 font-medium">{tr(locale, "colName")}</th>
+                    <th className="pb-3 pr-4 font-medium">{tr(locale, "colSector")}</th>
+                    <th className="pb-3 pr-4 font-medium">{tr(locale, "colCountry")}</th>
+                    <th className="pb-3 font-medium text-right">{tr(locale, "colVol")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -852,7 +908,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 mb-3">
                 {riskIcon}
                 <h3 className="text-base font-semibold text-slate-100">
-                  Sintesi del rischio
+                  {tr(locale, "riskTitle")}
                 </h3>
               </div>
               <p className="text-sm font-medium text-slate-200 mb-2">
@@ -870,8 +926,7 @@ export default function HomePage() {
           <section className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-16 text-center">
             <BarChart3 className="h-10 w-10 text-slate-600 mx-auto mb-4" />
             <p className="text-slate-400 text-sm max-w-md mx-auto">
-              Seleziona almeno due titoli, scegli l&apos;orizzonte temporale e avvia l&apos;analisi
-              per valutare rischio, correlazioni e grado di diversificazione del portafoglio.
+              {tr(locale, "emptyState")}
             </p>
           </section>
         )}
@@ -881,7 +936,7 @@ export default function HomePage() {
       <footer className="border-t border-slate-800/80 mt-auto">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 text-center sm:text-left">
           <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-            Analisi quantitativa di portafoglio secondo i principi della Modern Portfolio Theory.
+            {tr(locale, "footer")}
           </p>
         </div>
       </footer>
@@ -919,9 +974,11 @@ function KpiCard({
 function PieTooltip({
   active,
   payload,
+  weightLabel,
 }: {
   active?: boolean;
   payload?: Array<{ name?: string; value?: number }>;
+  weightLabel: string;
 }) {
   if (!active || !payload?.length) return null;
   const item = payload[0];
@@ -929,7 +986,7 @@ function PieTooltip({
     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg pointer-events-none">
       <p className="font-medium text-slate-800">{item.name}</p>
       <p className="mt-0.5 font-mono text-slate-900">
-        Peso: <span className="font-semibold">{item.value}%</span>
+        {weightLabel}: <span className="font-semibold">{item.value}%</span>
       </p>
     </div>
   );
@@ -937,17 +994,22 @@ function PieTooltip({
 
 function ExposureChart({
   title,
+  hint,
   data,
+  weightLabel,
 }: {
   title: string;
+  hint?: string;
   data: { name: string; value: number }[];
+  weightLabel: string;
 }) {
   const isFullCircle =
     data.length <= 1 || data.some((d) => d.value >= 99.5);
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
-      <h3 className="text-base font-semibold text-slate-100 mb-4">{title}</h3>
+      <h3 className="text-base font-semibold text-slate-100 mb-1">{title}</h3>
+      {hint && <p className="text-xs text-slate-500 mb-3">{hint}</p>}
       <div className="chart-touch h-56 w-full outline-none [&_*]:outline-none [&_svg]:outline-none">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -975,7 +1037,7 @@ function ExposureChart({
               ))}
             </Pie>
             <Tooltip
-              content={<PieTooltip />}
+              content={<PieTooltip weightLabel={weightLabel} />}
               wrapperStyle={{ outline: "none", zIndex: 50 }}
               allowEscapeViewBox={{ x: true, y: true }}
             />
