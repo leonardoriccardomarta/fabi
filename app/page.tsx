@@ -603,10 +603,10 @@ export default function HomePage() {
                     className={`inline-flex mt-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${corrLabelColor(result.correlationLabel)}`}
                   >
                     {result.correlationLabel === "Bassa"
-                      ? "Bassa — diversificazione efficace"
+                      ? "Bassa: diversificazione efficace"
                       : result.correlationLabel === "Moderata"
                         ? "Moderata"
-                        : "Elevata — attenzione"}
+                        : "Elevata: attenzione"}
                   </span>
                 }
               />
@@ -661,8 +661,8 @@ export default function HomePage() {
               </h3>
               <p className="text-xs text-slate-500 mb-2">
                 Ogni casella misura quanto due titoli tendono a muoversi insieme (correlazione di Pearson).
-                Verde: correlazione bassa o negativa — utile alla diversificazione.
-                Rosso: correlazione elevata — i titoli si muovono in modo simile.
+                Verde: correlazione bassa o negativa, utile alla diversificazione.
+                Rosso: correlazione elevata, i titoli si muovono in modo simile.
                 Grigio: diagonale, sempre pari a 1 (stesso titolo).
               </p>
               <div className="mb-4 flex flex-wrap gap-2 text-[10px] sm:text-xs">

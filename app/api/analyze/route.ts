@@ -165,7 +165,7 @@ function generateRiskSummary(
   if (score <= 2) {
     return {
       level: "low",
-      title: "Portafoglio resiliente — diversificazione efficace",
+      title: "Portafoglio resiliente: diversificazione efficace",
       message:
         `La volatilità annualizzata si attesta al ${(portfolioVol * 100).toFixed(1)}%, ` +
         `con correlazione media inter-asset pari a ${avgCorr.toFixed(2)}. ` +
@@ -178,7 +178,7 @@ function generateRiskSummary(
   if (score <= 5) {
     return {
       level: "moderate",
-      title: "Diversificazione parziale — margini di miglioramento",
+      title: "Diversificazione parziale: margini di miglioramento",
       message:
         `Volatilità annualizzata al ${(portfolioVol * 100).toFixed(1)}% e correlazione media ${avgCorr.toFixed(2)}. ` +
         `Il Diversification Ratio (${dr.toFixed(2)}) segnala un beneficio di diversificazione ancora incompleto. ` +
@@ -189,7 +189,7 @@ function generateRiskSummary(
 
   return {
     level: "high",
-    title: "Alert — rischio di concentrazione elevato",
+    title: "Alert: rischio di concentrazione elevato",
     message:
       `Volatilità annualizzata elevata (${(portfolioVol * 100).toFixed(1)}%) e correlazione media critica (${avgCorr.toFixed(2)}). ` +
       `Il Diversification Ratio (${dr.toFixed(2)}) indica un beneficio da covarianza insufficiente. ` +
