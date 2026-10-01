@@ -165,38 +165,34 @@ function generateRiskSummary(
   if (score <= 2) {
     return {
       level: "low",
-      title: "Portafoglio resiliente - basso rischio sistemico",
+      title: "Portafoglio abbastanza equilibrato",
       message:
-        `Il portafoglio presenta una volatilità annualizzata del ${(portfolioVol * 100).toFixed(1)}% ` +
-        `con correlazione media inter-asset di ${avgCorr.toFixed(2)}. ` +
-        `Il Diversification Ratio di ${dr.toFixed(2)} indica un beneficio significativo dalla covarianza negativa/bassa. ` +
-        `Gli indici HHI settoriale (${hhiSector.toFixed(3)}) e geografico (${hhiGeo.toFixed(3)}) ` +
-        `confermano una dispersione adeguata degli asset. Configurazione coerente con i principi della Modern Portfolio Theory.`,
+        `Il rischio annuo è circa ${(portfolioVol * 100).toFixed(1)}% e i titoli non si muovono troppo insieme ` +
+        `(correlazione media ${avgCorr.toFixed(2)}). ` +
+        `La diversificazione funziona (indice ${dr.toFixed(2)}, meglio se sopra 1). ` +
+        `Settore e paesi non sono troppo concentrati.`,
     };
   }
 
   if (score <= 5) {
     return {
       level: "moderate",
-      title: "Esposizione moderata - diversificazione parziale",
+      title: "Diversificazione solo parziale",
       message:
-        `La volatilità di portafoglio (${(portfolioVol * 100).toFixed(1)}%) e la correlazione media (${avgCorr.toFixed(2)}) ` +
-        `segnalano un beneficio di diversificazione incompleto (DR = ${dr.toFixed(2)}). ` +
-        `L'HHI settoriale (${hhiSector.toFixed(3)}) e geografico (${hhiGeo.toFixed(3)}) suggeriscono ` +
-        `possibili aree di concentrazione. Si raccomanda di valutare asset con correlazione inferiore ` +
-        `alla media corrente per migliorare il rapporto rischio/rendimento di Markowitz.`,
+        `Rischio annuo circa ${(portfolioVol * 100).toFixed(1)}%, correlazione media ${avgCorr.toFixed(2)}. ` +
+        `C'è ancora margine per diversificare meglio (indice ${dr.toFixed(2)}). ` +
+        `Prova ad aggiungere titoli di settori o paesi diversi.`,
     };
   }
 
   return {
     level: "high",
-    title: "Alert - rischio di concentrazione elevato",
+    title: "Attenzione: portafoglio troppo concentrato",
     message:
-      `ATTENZIONE: volatilità annualizzata al ${(portfolioVol * 100).toFixed(1)}% con correlazione media critica (${avgCorr.toFixed(2)}). ` +
-      `Il Diversification Ratio di ${dr.toFixed(2)} indica un beneficio da covarianza insufficiente. ` +
-      `HHI settoriale ${hhiSector.toFixed(3)} e geografico ${hhiGeo.toFixed(3)} evidenziano concentrazione marcata. ` +
-      `In scenari di stress sistemico, le perdite potrebbero amplificarsi per mancanza di copertura cross-asset. ` +
-      `Si raccomanda una riallocazione verso settori e geografie decorrelati.`,
+      `Rischio annuo alto (${(portfolioVol * 100).toFixed(1)}%) e i titoli si muovono troppo insieme ` +
+      `(correlazione ${avgCorr.toFixed(2)}). ` +
+      `In un calo di mercato potresti perdere su quasi tutto insieme. ` +
+      `Meglio aggiungere titoli meno correlati, di altri settori o paesi.`,
   };
 }
 
