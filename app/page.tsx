@@ -82,33 +82,30 @@ const PRESETS: Record<string, { label: string; tickers: string[] }> = {
 };
 
 const PIE_COLORS = [
-  "#10b981",
-  "#6366f1",
-  "#3b82f6",
-  "#f59e0b",
-  "#ec4899",
-  "#14b8a6",
-  "#8b5cf6",
-  "#ef4444",
-  "#84cc16",
-  "#06b6d4",
+  "#2563eb",
+  "#0f766e",
+  "#7c3aed",
+  "#b45309",
+  "#be123c",
+  "#0369a1",
+  "#4f46e5",
+  "#15803d",
+  "#a16207",
+  "#334155",
 ];
 
 function corrColor(v: number, isDiagonal = false): string {
-  // Diagonale = sempre 1.00: grigio neutro
-  if (isDiagonal) return "bg-slate-600 text-slate-100 ring-1 ring-slate-500/50";
-  // Verde = bassa o negativa (utile alla diversificazione)
-  // Rosso = correlazione elevata (i titoli si muovono insieme)
-  if (v >= 0.4) return "bg-rose-500/90 text-white";
-  return "bg-emerald-600/75 text-white";
+  if (isDiagonal) return "bg-slate-200 text-slate-700 ring-1 ring-slate-300";
+  if (v >= 0.4) return "bg-rose-600 text-white";
+  return "bg-emerald-600 text-white";
 }
 
 function corrLabelColor(label: string): string {
   if (label === "Low" || label === "Bassa")
-    return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (label === "Moderate" || label === "Moderata")
-    return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  return "bg-rose-500/15 text-rose-400 border-rose-500/30";
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-rose-50 text-rose-700 border-rose-200";
 }
 
 interface SearchHit {
@@ -287,7 +284,7 @@ export default function HomePage() {
   const riskIcon = useMemo(() => {
     if (!result) return null;
     if (result.riskSummary.level === "low")
-      return <ShieldCheck className="h-5 w-5 text-emerald-400" />;
+      return <ShieldCheck className="h-5 w-5 text-primary-600" />;
     if (result.riskSummary.level === "moderate")
       return <Shield className="h-5 w-5 text-amber-400" />;
     return <ShieldAlert className="h-5 w-5 text-rose-400" />;
@@ -296,10 +293,10 @@ export default function HomePage() {
   const riskBoxStyle = useMemo(() => {
     if (!result) return "";
     if (result.riskSummary.level === "low")
-      return "border-emerald-500/30 bg-emerald-500/5";
+      return "border-emerald-200 bg-emerald-50";
     if (result.riskSummary.level === "moderate")
-      return "border-amber-500/30 bg-amber-500/5";
-    return "border-rose-500/30 bg-rose-500/5";
+      return "border-amber-200 bg-amber-50";
+    return "border-rose-200 bg-rose-50";
   }, [result]);
 
   // Refresh risk summary language when locale changes after an analysis
@@ -332,18 +329,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ───── Header ───── */}
-      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-600 shadow-glow">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-600 shadow-sm">
               <BarChart3 className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-semibold text-slate-100 truncate">
+              <h1 className="text-base sm:text-lg font-semibold text-slate-900 truncate">
                 Portfolio Risk &amp; Diversification Engine
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="inline-flex items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-indigo-300 tracking-wide uppercase">
+                <span className="inline-flex items-center gap-1 rounded-md border border-primary-200 bg-primary-50 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-primary-700 tracking-wide uppercase">
                   <Sparkles className="h-3 w-3" />
                   {tr(locale, "badge")}
                 </span>
@@ -351,7 +348,7 @@ export default function HomePage() {
             </div>
           </div>
           <div
-            className="inline-flex shrink-0 rounded-lg border border-slate-700 bg-slate-950/60 p-0.5"
+            className="inline-flex shrink-0 rounded-lg border border-slate-200 bg-slate-50 p-0.5"
             role="group"
             aria-label="Language"
           >
@@ -360,8 +357,8 @@ export default function HomePage() {
               onClick={() => setLocale("en")}
               className={`px-2.5 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 locale === "en"
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-primary-600 text-white"
+                  : "text-slate-400 hover:text-slate-800"
               }`}
             >
               {tr(locale, "langEn")}
@@ -371,8 +368,8 @@ export default function HomePage() {
               onClick={() => setLocale("it")}
               className={`px-2.5 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 locale === "it"
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-primary-600 text-white"
+                  : "text-slate-400 hover:text-slate-800"
               }`}
             >
               {tr(locale, "langIt")}
@@ -382,15 +379,22 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 sm:py-10 space-y-8">
+        {/* Intro */}
+        <section className="max-w-3xl">
+          <p className="text-base sm:text-lg text-slate-600 leading-relaxed text-balance">
+            {tr(locale, "intro")}
+          </p>
+        </section>
+
         {/* ───── Input Section ───── */}
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 shadow-glow-indigo/50">
+        <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-emerald-400" />
+              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <Layers className="h-5 w-5 text-primary-600" />
                 {tr(locale, "yourPortfolio")}
               </h2>
-          <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-slate-500 mt-1">
                 {tr(locale, "portfolioHint")}
               </p>
             </div>
@@ -399,7 +403,7 @@ export default function HomePage() {
           {/* Chip input + company search */}
           <div ref={searchBoxRef} className="relative">
             <div
-              className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2.5 focus-within:border-emerald-500/50 transition-colors min-h-[52px]"
+              className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-primary-400 transition-colors min-h-[52px]"
               onClick={() => {
                 inputRef.current?.focus();
                 setSearchOpen(true);
@@ -408,7 +412,7 @@ export default function HomePage() {
               {tickers.map((ticker) => (
                 <span
                   key={ticker}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 pl-2.5 pr-1.5 py-1 text-sm font-mono text-emerald-300"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200 pl-2.5 pr-1.5 py-1 text-sm font-mono text-primary-700"
                 >
                   {ticker}
                   <button
@@ -417,7 +421,7 @@ export default function HomePage() {
                       e.stopPropagation();
                       removeTicker(ticker);
                     }}
-                    className="rounded-md p-0.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700 transition-colors"
+                    className="rounded-md p-0.5 text-slate-400 hover:text-rose-400 hover:bg-slate-200 transition-colors"
                     aria-label={`${tr(locale, "removeTicker")} ${ticker}`}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -425,7 +429,7 @@ export default function HomePage() {
                 </span>
               ))}
               <div className="flex flex-1 items-center gap-2 min-w-[140px]">
-                <Search className="h-3.5 w-3.5 text-slate-600 shrink-0" />
+                <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <input
                   id="ticker-input"
                   ref={inputRef}
@@ -443,7 +447,7 @@ export default function HomePage() {
                       ? tr(locale, "searchPlaceholderEmpty")
                       : tr(locale, "searchPlaceholderAdd")
                   }
-                  className="flex-1 bg-transparent outline-none text-sm text-slate-200 placeholder:text-slate-600 py-1"
+                  className="flex-1 bg-transparent outline-none text-sm text-slate-800 placeholder:text-slate-400 py-1"
                   autoComplete="off"
                   role="combobox"
                   aria-expanded={searchOpen}
@@ -457,7 +461,7 @@ export default function HomePage() {
                   e.stopPropagation();
                   openSearchPanel();
                 }}
-                className="rounded-lg p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"
+                className="rounded-lg p-1.5 text-slate-400 hover:text-primary-600 hover:bg-slate-100 transition-colors"
                 aria-label={tr(locale, "openSearch")}
                 title={tr(locale, "openSearch")}
               >
@@ -471,7 +475,7 @@ export default function HomePage() {
                     setTickers([]);
                     setSelectedPreset(null);
                   }}
-                  className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-100 transition-colors"
                   aria-label={tr(locale, "clearPortfolio")}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -484,17 +488,17 @@ export default function HomePage() {
               <div
                 id="company-search-list"
                 role="listbox"
-                className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-xl border border-slate-700 bg-slate-950 shadow-xl shadow-black/40"
+                className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-black/40"
               >
                 {input.trim().length === 0 && !searchLoading && (
                   <div className="px-4 py-3 text-sm text-slate-500 flex items-center gap-2">
-                    <Search className="h-4 w-4 text-slate-600" />
+                    <Search className="h-4 w-4 text-slate-400" />
                     {tr(locale, "searchHint")}
                   </div>
                 )}
                 {searchLoading && (
                   <div className="flex items-center gap-2 px-4 py-3 text-sm text-slate-400">
-                    <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
+                    <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
                     {tr(locale, "searching")}
                   </div>
                 )}
@@ -521,19 +525,19 @@ export default function HomePage() {
                         }}
                         className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                           idx === activeIdx
-                            ? "bg-slate-800/90"
-                            : "hover:bg-slate-900"
+                            ? "bg-slate-100/90"
+                            : "hover:bg-white"
                         }`}
                       >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 border border-slate-700">
-                          <Building2 className="h-4 w-4 text-indigo-400" />
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 border border-slate-200">
+                          <Building2 className="h-4 w-4 text-primary-600" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-medium text-emerald-300">
+                            <span className="font-mono text-sm font-medium text-primary-700">
                               {hit.symbol}
                             </span>
-                            <span className="truncate text-sm text-slate-200">
+                            <span className="truncate text-sm text-slate-800">
                               {hit.name}
                             </span>
                           </div>
@@ -569,8 +573,8 @@ export default function HomePage() {
                   aria-pressed={active}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                     active
-                      ? "border-indigo-500 bg-indigo-500/20 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.25)]"
-                      : "border-slate-700 bg-slate-850/50 text-slate-300 hover:border-indigo-500/50 hover:text-indigo-300 hover:bg-indigo-500/10"
+                      ? "border-primary-600 bg-primary-100 text-primary-700 shadow-sm"
+                      : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary-600/50 hover:text-primary-700 hover:bg-primary-50"
                   }`}
                 >
                   {p.label}
@@ -583,7 +587,7 @@ export default function HomePage() {
           <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 uppercase tracking-wider">{tr(locale, "period")}</span>
-              <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/50 p-0.5">
+              <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
                 {(["6M", "1Y", "3Y"] as Horizon[]).map((h) => (
                   <button
                     key={h}
@@ -591,8 +595,8 @@ export default function HomePage() {
                     onClick={() => setHorizon(h)}
                     className={`px-3.5 py-1.5 text-sm rounded-md font-medium transition-all ${
                       horizon === h
-                        ? "bg-indigo-600 text-white shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "bg-primary-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-slate-800"
                     }`}
                   >
                     {h}
@@ -605,7 +609,7 @@ export default function HomePage() {
               type="button"
               onClick={runAnalysis}
               disabled={loading || tickers.length < 2}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-glow hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <>
@@ -622,7 +626,7 @@ export default function HomePage() {
           </div>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 animate-fade-in">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 animate-fade-in">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -636,14 +640,14 @@ export default function HomePage() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-28 rounded-2xl border border-slate-800 bg-slate-900/50"
+                  className="h-28 rounded-xl border border-slate-200 bg-slate-100"
                 />
               ))}
             </div>
-            <div className="h-72 rounded-2xl border border-slate-800 bg-slate-900/50" />
+            <div className="h-72 rounded-xl border border-slate-200 bg-slate-100" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="h-64 rounded-2xl border border-slate-800 bg-slate-900/50" />
-              <div className="h-64 rounded-2xl border border-slate-800 bg-slate-900/50" />
+              <div className="h-64 rounded-xl border border-slate-200 bg-slate-100" />
+              <div className="h-64 rounded-xl border border-slate-200 bg-slate-100" />
             </div>
           </section>
         )}
@@ -652,7 +656,7 @@ export default function HomePage() {
         {result && !loading && (
           <div className="space-y-6 animate-slide-up">
             {result.warnings && result.warnings.length > 0 && (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <strong className="font-medium">{tr(locale, "warnings")}</strong>{" "}
                 {result.warnings.join(" · ")}
               </div>
@@ -661,13 +665,13 @@ export default function HomePage() {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
+                icon={<TrendingUp className="h-4 w-4 text-primary-600" />}
                 label={tr(locale, "kpiVol")}
                 value={`${(result.portfolioVolatility * 100).toFixed(2)}%`}
                 sub={tr(locale, "kpiVolSub")}
               />
               <KpiCard
-                icon={<Activity className="h-4 w-4 text-indigo-400" />}
+                icon={<Activity className="h-4 w-4 text-primary-600" />}
                 label={tr(locale, "kpiCorr")}
                 value={result.avgCorrelation.toFixed(3)}
                 sub={
@@ -684,15 +688,15 @@ export default function HomePage() {
                   </span>
                 }
               />
-              <div className="relative rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-5">
+              <div className="relative rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-slate-500">
-                    <Sparkles className="h-4 w-4 text-blue-400" />
+                    <Sparkles className="h-4 w-4 text-primary-500" />
                     {tr(locale, "drLabel")}
                   </div>
                   <button
                     type="button"
-                    className="text-slate-500 hover:text-slate-300"
+                    className="text-slate-500 hover:text-slate-700"
                     onMouseEnter={() => setShowDrTip(true)}
                     onMouseLeave={() => setShowDrTip(false)}
                     onClick={() => setShowDrTip((v) => !v)}
@@ -701,14 +705,14 @@ export default function HomePage() {
                     <Info className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-2xl sm:text-3xl font-semibold font-mono text-slate-50">
+                <p className="text-2xl sm:text-3xl font-semibold font-mono text-slate-900">
                   {result.diversificationRatio.toFixed(3)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {tr(locale, "drSub")}
                 </p>
                 {showDrTip && (
-                  <div className="absolute z-20 right-3 top-12 max-w-[240px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-300 shadow-xl">
+                  <div className="absolute z-20 right-3 top-12 max-w-[240px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-xl">
                     {tr(locale, "drTip")}
                   </div>
                 )}
@@ -728,23 +732,23 @@ export default function HomePage() {
             </div>
 
             {/* Correlation Heatmap */}
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
-              <h3 className="text-base font-semibold text-slate-100 mb-1">
+            <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 overflow-x-auto">
+              <h3 className="text-base font-semibold text-slate-900 mb-1">
                 {tr(locale, "matrixTitle")}
               </h3>
               <p className="text-xs text-slate-500 mb-2">
                 {tr(locale, "matrixDesc")}
               </p>
               <div className="mb-4 flex flex-wrap gap-2 text-[10px] sm:text-xs">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600/20 px-2 py-1 text-emerald-300 border border-emerald-500/30">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 text-primary-700 border border-emerald-200">
                   <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
                   {tr(locale, "legendGreen")}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 text-rose-300 border border-rose-500/30">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 px-2 py-1 text-rose-700 border border-rose-200">
                   <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
                   {tr(locale, "legendRed")}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-700/50 px-2 py-1 text-slate-300 border border-slate-600">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-slate-700 border border-slate-200">
                   <span className="h-2.5 w-2.5 rounded-sm bg-slate-500" />
                   {tr(locale, "legendGrey")}
                 </span>
@@ -804,8 +808,8 @@ export default function HomePage() {
             </div>
 
             {/* Cumulative returns */}
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
-              <h3 className="text-base font-semibold text-slate-100 mb-1">
+            <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+              <h3 className="text-base font-semibold text-slate-900 mb-1">
                 {tr(locale, "cumTitle")}
               </h3>
               <p className="text-xs text-slate-500 mb-4">
@@ -814,7 +818,7 @@ export default function HomePage() {
               <div className="h-72 sm:h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={result.cumulativeReturns}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
                       dataKey="date"
                       tick={{ fill: "#64748b", fontSize: 10 }}
@@ -828,21 +832,22 @@ export default function HomePage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        background: "#0f172a",
-                        border: "1px solid #334155",
+                        background: "#ffffff",
+                        border: "1px solid #e2e8f0",
                         borderRadius: 8,
                         fontSize: 12,
+                        color: "#0f172a",
                       }}
-                      labelStyle={{ color: "#94a3b8" }}
+                      labelStyle={{ color: "#64748b" }}
                     />
                     <Legend
-                      wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                      wrapperStyle={{ fontSize: 11, color: "#64748b" }}
                     />
                     <Line
                       type="monotone"
                       dataKey="portfolio"
                       name={tr(locale, "portfolioLine")}
-                      stroke="#10b981"
+                      stroke="#2563eb"
                       strokeWidth={2.5}
                       dot={false}
                     />
@@ -864,13 +869,13 @@ export default function HomePage() {
             </section>
 
             {/* Asset detail table */}
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-x-auto">
-              <h3 className="text-base font-semibold text-slate-100 mb-4">
+            <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 overflow-x-auto">
+              <h3 className="text-base font-semibold text-slate-900 mb-4">
                 {tr(locale, "assetsTitle")}
               </h3>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                  <tr className="text-left text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200">
                     <th className="pb-3 pr-4 font-medium">{tr(locale, "colTicker")}</th>
                     <th className="pb-3 pr-4 font-medium">{tr(locale, "colName")}</th>
                     <th className="pb-3 pr-4 font-medium">{tr(locale, "colSector")}</th>
@@ -882,9 +887,9 @@ export default function HomePage() {
                   {result.assets.map((a) => (
                     <tr
                       key={a.ticker}
-                      className="border-b border-slate-800/60 text-slate-300"
+                      className="border-b border-slate-100 text-slate-700"
                     >
-                      <td className="py-2.5 pr-4 font-mono text-emerald-400">
+                      <td className="py-2.5 pr-4 font-mono text-primary-600">
                         {a.ticker}
                       </td>
                       <td className="py-2.5 pr-4 max-w-[160px] truncate">
@@ -903,15 +908,15 @@ export default function HomePage() {
 
             {/* Executive Risk Summary */}
             <section
-              className={`rounded-2xl border p-4 sm:p-6 ${riskBoxStyle}`}
+              className={`rounded-xl border p-4 sm:p-6 ${riskBoxStyle}`}
             >
               <div className="flex items-center gap-2 mb-3">
                 {riskIcon}
-                <h3 className="text-base font-semibold text-slate-100">
+                <h3 className="text-base font-semibold text-slate-900">
                   {tr(locale, "riskTitle")}
                 </h3>
               </div>
-              <p className="text-sm font-medium text-slate-200 mb-2">
+              <p className="text-sm font-medium text-slate-800 mb-2">
                 {result.riskSummary.title}
               </p>
               <p className="text-sm text-slate-400 leading-relaxed">
@@ -923,18 +928,26 @@ export default function HomePage() {
 
         {/* Empty state */}
         {!result && !loading && (
-          <section className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-16 text-center">
-            <BarChart3 className="h-10 w-10 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-sm max-w-md mx-auto">
+          <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-16 text-center">
+            <BarChart3 className="h-10 w-10 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-500 text-sm max-w-md mx-auto">
               {tr(locale, "emptyState")}
             </p>
           </section>
         )}
       </main>
 
-      {/* ───── Footer ───── */}
-      <footer className="border-t border-slate-800/80 mt-auto">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 text-center sm:text-left">
+      {/* About + Footer */}
+      <footer className="border-t border-slate-200 mt-auto bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-6">
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 sm:p-6 max-w-3xl">
+            <h2 className="text-base font-semibold text-slate-900">
+              {tr(locale, "aboutTitle")}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+              {tr(locale, "aboutBody")}
+            </p>
+          </section>
           <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
             {tr(locale, "footer")}
           </p>
@@ -958,12 +971,12 @@ function KpiCard({
   sub: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-5">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-slate-500 mb-3">
         {icon}
         {label}
       </div>
-      <p className="text-2xl sm:text-3xl font-semibold font-mono text-slate-50">
+      <p className="text-2xl sm:text-3xl font-semibold font-mono text-slate-900">
         {value}
       </p>
       <div className="text-xs text-slate-500 mt-1">{sub}</div>
@@ -1007,8 +1020,8 @@ function ExposureChart({
     data.length <= 1 || data.some((d) => d.value >= 99.5);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 overflow-hidden">
-      <h3 className="text-base font-semibold text-slate-100 mb-1">{title}</h3>
+    <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 overflow-hidden">
+      <h3 className="text-base font-semibold text-slate-900 mb-1">{title}</h3>
       {hint && <p className="text-xs text-slate-500 mb-3">{hint}</p>}
       <div className="chart-touch relative h-56 w-full overflow-hidden outline-none [&_*]:outline-none [&_svg]:outline-none">
         <ResponsiveContainer width="100%" height="100%">

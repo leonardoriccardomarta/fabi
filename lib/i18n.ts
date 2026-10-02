@@ -3,6 +3,8 @@ export type Locale = "en" | "it";
 export const translations = {
   en: {
     badge: "Quantitative Risk Engine",
+    intro:
+      "Analyze your portfolio's volatility, asset correlation, diversification, and concentration at a glance. Easily track and interpret your metrics using interactive charts.",
     yourPortfolio: "Your portfolio",
     portfolioHint:
       "Search for a company or ticker (e.g. Apple, ENI.MI). Weights are equal (1/N).",
@@ -58,6 +60,9 @@ export const translations = {
     riskTitle: "Risk summary",
     emptyState:
       "Select at least two tickers, choose the time horizon, and run the analysis to assess portfolio risk, correlations, and diversification.",
+    aboutTitle: "About Us",
+    aboutBody:
+      "This project was launched by two students, Fabiano Centimerio and Leonardo Marta, each bringing together their respective fields of study: Economics and Artificial Intelligence.",
     footer:
       "Quantitative portfolio analysis based on the principles of Modern Portfolio Theory.",
     weight: "Weight",
@@ -71,6 +76,8 @@ export const translations = {
   },
   it: {
     badge: "Motore di rischio quantitativo",
+    intro:
+      "Analizza a colpo d'occhio volatilità, correlazione tra asset, diversificazione e concentrazione del portafoglio. Monitora e interpreta le metriche con grafici interattivi.",
     yourPortfolio: "Il tuo portafoglio",
     portfolioHint:
       "Cerca un'azienda o un ticker (es. Apple, ENI.MI). I pesi sono equi (1/N).",
@@ -126,6 +133,9 @@ export const translations = {
     riskTitle: "Sintesi del rischio",
     emptyState:
       "Seleziona almeno due titoli, scegli l'orizzonte temporale e avvia l'analisi per valutare rischio, correlazioni e grado di diversificazione del portafoglio.",
+    aboutTitle: "Chi siamo",
+    aboutBody:
+      "Questo progetto è stato avviato da due studenti, Fabiano Centimerio e Leonardo Marta, che uniscono i rispettivi percorsi di studio: Economia e Intelligenza Artificiale.",
     footer:
       "Analisi quantitativa di portafoglio secondo i principi della Modern Portfolio Theory.",
     weight: "Peso",
